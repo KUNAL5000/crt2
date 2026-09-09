@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Ludo Board</title>
+<style>
+  :root{
+    --green:#159c47;
+    --yellow:#ffd400;
+    --red:#e8232a;
+    --blue:#1e3ea8;
+    --cell:40px;
+  }
+  body{
+    margin:0;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:#eef1f5;
+    font-family:Arial, sans-serif;
+  }
+  .board-wrap{
+    position:relative;
+    width:calc(var(--cell)*15);
+    height:calc(var(--cell)*15);
+  }
+  .board{
+    position:relative;
+    width:100%;
+    height:100%;
+    display:grid;
+    grid-template-columns:repeat(15, var(--cell));
+    grid-template-rows:repeat(15, var(--cell));
+    border:4px solid #000;
+    box-shadow:0 6px 20px rgba(0,0,0,.25);
+    background:#fff;
+  }
+  .cell{
+    border:1px solid #000;
+    box-sizing:border-box;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:18px;
+  }
+  .track{background:#fff;}
+  .green-lane, .green-notch{background:var(--green);}
+  .yellow-lane, .yellow-notch{background:var(--yellow);}
+  .red-lane, .red-notch{background:var(--red);}
+  .blue-lane, .blue-notch{background:var(--blue);}
+  .star{color:#000;font-size:20px;}
+
+  .base{
+    position:relative;
+    border:1px solid #000;
+    box-sizing:border-box;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .green-base{background:var(--green);}
+  .yellow-base{background:var(--yellow);}
+  .red-base{background:var(--red);}
+  .blue-base{background:var(--blue);}
+
+  .inner-box{
+    width:66%;
+    height:66%;
+    background:#fff;
+    border:3px solid #000;
+    border-radius:6px;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    grid-template-rows:1fr 1fr;
+    gap:10%;
+    padding:12%;
+    box-sizing:border-box;
+  }
+  .token{
+    border-radius:50%;
+    border:2px solid #000;
+  }
+  .token.green{background:var(--green);}
+  .token.yellow{background:var(--yellow);}
+  .token.red{background:var(--red);}
+  .token.blue{background:var(--blue);}
+
+  .center-triangle{
+    position:relative;
+    border:1px solid #000;
+    box-sizing:border-box;
+    background:
+      conic-gradient(
+        from 0deg at 50% 50%,
+        var(--yellow) 0deg 45deg,
+        var(--blue) 45deg 135deg,
+        var(--red) 135deg 225deg,
+        var(--green) 225deg 315deg,
+        var(--yellow) 315deg 360deg
+      );
+  }
+
+  /* arrows placed just outside the board edges */
+  .edge-arrow{
+    position:absolute;
+    width:var(--cell);
+    height:var(--cell);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:26px;
+    line-height:1;
+  }
+  .arrow-green{ color:var(--green); left:5px; top: 284px; }
+  .arrow-yellow{ color:var(--yellow); top:4px; left:284px; text-shadow:0 0 1px #000;}
+  .arrow-blue{ color:var(--blue); right:-3px; top: 284px;; }
+  .arrow-red{ color:var(--red); bottom:-4px; left:284px; }
+</style>
+</head>
+<body>
+
+<div class="board-wrap">
+  <div class="board" id="board">
+    <div class="base green-base" style="grid-column:1/span 6; grid-row:1/span 6;">
+      <div class="inner-box">
+        <div class="token green"></div>
+        <div class="token green"></div>
+        <div class="token green"></div>
+        <div class="token green"></div>
+      </div>
+    </div>
+
+    <div class="base yellow-base" style="grid-column:10/span 6; grid-row:1/span 6;">
+      <div class="inner-box">
+        <div class="token yellow"></div>
+        <div class="token yellow"></div>
+        <div class="token yellow"></div>
+        <div class="token yellow"></div>
+      </div>
+    </div>
+
+    <div class="base red-base" style="grid-column:1/span 6; grid-row:10/span 6;">
+      <div class="inner-box">
+        <div class="token red"></div>
+        <div class="token red"></div>
+        <div class="token red"></div>
+        <div class="token red"></div>
+      </div>
+    </div>
+
+    <div class="base blue-base" style="grid-column:10/span 6; grid-row:10/span 6;">
+      <div class="inner-box">
+        <div class="token blue"></div>
+        <div class="token blue"></div>
+        <div class="token blue"></div>
+        <div class="token blue"></div>
+      </div>
+    </div>
+
+    <div class="center-triangle" style="grid-column:7/span 3; grid-row:7/span 3;"></div>
+  </div>
+
+  <div class="edge-arrow arrow-green">&#9654;</div>
+  <div class="edge-arrow arrow-yellow">&#9660;</div>
+  <div class="edge-arrow arrow-blue">&#9664;</div>
+  <div class="edge-arrow arrow-red">&#9650;</div>
+</div>
+
+<script>
+const board = document.getElementById('board');
+
+function makeCell(r, c, cls, content){
+  const d = document.createElement('div');
+  d.className = 'cell ' + cls;
+  d.style.gridRow = (r+1);
+  d.style.gridColumn = (c+1);
+  if(content) d.innerHTML = content;
+  board.appendChild(d);
+}
+
+for(let r=0; r<15; r++){
+  for(let c=0; c<15; c++){
+    // skip the four base regions
+    if((r<6 && c<6) || (r<6 && c>8) || (r>8 && c<6) || (r>8 && c>8)) continue;
+    // skip center 3x3
+    if(r>=6 && r<=8 && c>=6 && c<=8) continue;
+
+    let cls = 'track';
+    let content = '';
+
+    if(c===7 && r<6 && r>0){
+      cls = 'yellow-lane';
+    } else if(c===7 && r>7 && r<14){
+      cls = 'red-lane';
+    } else if(r===7 && c<6 && c>0){
+      cls = 'green-lane';
+    } else if(r===7 && c>8 && c<14){
+      cls = 'blue-lane';
+    } else if(r===6 && c===1){
+      cls = 'green-notch';
+    } else if(r===1 && c===8){
+      cls = 'yellow-notch';
+    } else if(r===8 && c===13){
+      cls = 'blue-notch';
+    } else if(r===13 && c===6){
+      cls = 'red-notch';
+    } else if(r===2 && c===6){
+      cls = 'track star'; content = '&#9733;';
+    } else if(r===8 && c===2){
+      cls = 'track star'; content = '&#9733;';
+    } else if(r===6 && c===12){
+      cls = 'track star'; content = '&#9733;';
+    } else if(r===12 && c===8){
+      cls = 'track star'; content = '&#9733;';
+    }
+
+    makeCell(r, c, cls, content);
+  }
+}
+</script>
+
+</body>
+</html>
